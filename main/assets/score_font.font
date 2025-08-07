@@ -1,0 +1,4 @@
+font: "/assets/fonts/smallest_pixel-7.ttf"
+material: "/builtins/fonts/font.material"
+size: 60
+characters: " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"

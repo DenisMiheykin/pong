@@ -1,0 +1,67 @@
+go.property("ball_id", 0)
+
+local BALL_OUT_OF_BOUNDS = hash("ball_out_of_bounds")
+local BALL_COLLIDED = hash("ball_collided")
+
+local COLLISION_RESPONSE = hash("collision_response")
+local HORIZONTAL_WALL = hash("horizontal_wall")
+local VERTICAL_WALL = hash("vertical_wall")
+
+local object_speed = 200
+local collision_speed = 10
+
+function init(self)
+	self.game_width = tonumber(sys.get_config_string("display.width"))
+	self.object_width = go.get("#sprite", "size.x")
+
+	local directions = {-1, 1}
+
+	local initial_direction = directions[math.random(#directions)]
+
+	self.direction = vmath.vector3(initial_direction, 1, 0)
+
+	self.out_of_bounds = false
+	self.collisions = 0
+end
+
+function update(self, dt)
+	if self.out_of_bounds then
+		return
+	end
+
+	local speed = object_speed + (collision_speed * self.collisions * 2)
+	local velocity = vmath.vector3(speed * self.direction.x, speed * self.direction.y, 0)
+
+	local next_pos = go.get_position() + velocity * dt
+
+	if next_pos.x + self.object_width < 0 or next_pos.x - self.object_width > self.game_width then
+		self.out_of_bounds = true
+		msg.post("controller#main_controller", BALL_OUT_OF_BOUNDS, { ball_id = self.ball_id, x = next_pos.x })
+		return
+	end
+
+	go.set_position(next_pos)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == COLLISION_RESPONSE then
+		local other_id = message.other_id
+
+		if self.previous_other_id == other_id then
+			return
+		end
+
+		if message.other_group == HORIZONTAL_WALL then
+			self.direction.y = -self.direction.y
+		elseif message.other_group == VERTICAL_WALL then
+			self.direction.x = -self.direction.x
+		end
+		self.previous_other_id = other_id
+		self.collisions = self.collisions + 1
+
+		sound.play("#sound")
+		msg.post("controller#main_controller", BALL_COLLIDED)
+	end
+end
+
+
