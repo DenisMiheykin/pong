@@ -1,0 +1,52 @@
+script: "/main/main_gui.gui_script"
+fonts {
+  name: "score_font"
+  font: "/main/assets/score_font.font"
+}
+nodes {
+  position {
+    x: 200.0
+    y: 580.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "0"
+  font: "score_font"
+  id: "left_score"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1080.0
+    y: 580.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "0"
+  font: "score_font"
+  id: "right_score"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 640.0
+    y: 320.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  font: "score_font"
+  id: "game_over"
+  inherit_alpha: true
+  enabled: false
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

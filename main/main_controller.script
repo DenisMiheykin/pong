@@ -1,0 +1,89 @@
+local ball_spawn_timer = require("main.modules.ball_spawn_timer")
+
+local BALL_OUT_OF_BOUNDS = hash("ball_out_of_bounds")
+local BALL_COLLIDED = hash("ball_collided")
+local SHAKE = hash("shake")
+local UPDATE_LEFT_SCORE = hash("update_left_score")
+local UPDATE_RIGHT_SCORE = hash("update_right_score")
+local GAME_OVER = hash("game_over")
+local START_GAME = hash("start_game")
+
+local MAX_SCORE = 3
+local BALL_SPAWN_TIMER_DELAY = 5
+local CAMERA_SHAKE_INTENSITY = 6
+
+local function spawn_ball(self)
+	self.ball_spawn_timer.start()
+end
+
+local function initialize_game(self)
+	self.ball_spawn_timer = ball_spawn_timer.new(BALL_SPAWN_TIMER_DELAY, self.ball_initial_pos)
+	spawn_ball(self)
+
+	self.left_score = 0
+	self.right_score = 0
+	self.is_game_over = false
+end
+
+function init(self)
+	math.randomseed(os.time())
+	math.random()
+
+	--msg.post("camera", "enable")
+	msg.post(".", "acquire_input_focus")
+
+	self.game_width = tonumber(sys.get_config_string("display.width"))
+	self.game_height = tonumber(sys.get_config_string("display.height"))
+
+	self.ball_initial_pos = vmath.vector3(self.game_width / 2, self.game_height / 2, 0.5)
+	initialize_game(self)
+end
+
+local function check_game_over(self, winner)
+	if self.left_score >= MAX_SCORE or self.right_score >= MAX_SCORE then
+		self.is_game_over = true
+		msg.post("gui#main", GAME_OVER, { winner = winner })
+		self.ball_spawn_timer.cancel()
+		return true
+	end
+	return false
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == BALL_OUT_OF_BOUNDS then
+		if message.x > self.game_width / 2 then
+			self.left_score = self.left_score + 1
+			msg.post("gui#main", UPDATE_LEFT_SCORE, { score = self.left_score })
+
+			if check_game_over(self, "Left player") then
+				return
+			end
+		else
+			self.right_score = self.right_score + 1
+			msg.post("gui#main", UPDATE_RIGHT_SCORE, { score = self.right_score })
+
+			if check_game_over(self, "Right player") then
+				return
+			end
+		end
+	
+		self.ball_spawn_timer.out_of_bounds(message.ball_id)
+		spawn_ball(self)
+	elseif message_id == BALL_COLLIDED then
+		msg.post("/camera", SHAKE, { shake = CAMERA_SHAKE_INTENSITY })
+	end
+end
+
+function on_input(self, action_id, action)
+	if action_id == START_GAME then
+		if not self.is_game_over then
+			return
+		end
+
+		initialize_game(self)
+		msg.post("gui#main", START_GAME)
+	end
+end
+
+
+

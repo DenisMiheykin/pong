@@ -1,0 +1,10 @@
+images {
+  image: "/assets/images/background.png"
+}
+images {
+  image: "/assets/images/ball.png"
+}
+images {
+  image: "/assets/images/paddle.png"
+}
+extrude_borders: 2
